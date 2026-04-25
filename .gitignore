@@ -145,6 +145,9 @@ ENV/
 env.bak/
 venv.bak/
 
+#extras
+TakeAways.py
+
 # Spyder project settings
 .spyderproject
 .spyproject
