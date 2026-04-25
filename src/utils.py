@@ -4,8 +4,9 @@ import numpy as np
 import pandas as pd
 import dill
 
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
+from sklearn.model_selection import GridSearchCV
+
 from src.logger import logging
 from src.exception import CustomException
 def save_object(file_path,obj):
@@ -18,14 +19,22 @@ def save_object(file_path,obj):
     except Exception as e:
         raise CustomException(e,sys)
     
-def evaluate_models(x_train, y_train, x_test, y_test, models):
+def evaluate_models(x_train, y_train, x_test, y_test, models,params):
     try:
         report = {}
         for name, model in models.items():          
-            model.fit(x_train, y_train)
+            para=params[name]
 
-            train_score = r2_score(y_train, model.predict(x_train))
-            test_score  = r2_score(y_test,  model.predict(x_test))
+            if len(para) == 0:
+                model.fit(x_train, y_train)
+                best_model = model
+            else:
+                gs=GridSearchCV(model,para,cv=3)
+                gs.fit(x_train,y_train)
+                best_model = gs.best_estimator_
+
+            train_score = r2_score(y_train, best_model.predict(x_train))
+            test_score  = r2_score(y_test,  best_model.predict(x_test))
 
             logging.info(f"{name} | Train R²: {train_score:.4f} | Test R²: {test_score:.4f}")
             report[name] = test_score               
@@ -33,6 +42,3 @@ def evaluate_models(x_train, y_train, x_test, y_test, models):
         return report
     except Exception as e:
         raise CustomException(e, sys)
-
-    except Exception as e:
-        raise CustomException(e,sys)
